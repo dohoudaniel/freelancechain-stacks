@@ -26,19 +26,19 @@
 )
 
 ;; Safe math functions to prevent overflows
-(define-read-only (safe-add (a uint) (b uint))
+(define-public (safe-add (a uint) (b uint))
   (begin
     (let ((sum (+ a b)))
       (asserts! (>= sum a) (err u3001))
-      sum
+      (ok sum)
     )
   )
 )
 
-(define-read-only (safe-sub (a uint) (b uint))
+(define-public (safe-sub (a uint) (b uint))
   (begin
     (asserts! (>= a b) (err u3002))
-    (- a b)
+    (ok (- a b))
   )
 )
 
