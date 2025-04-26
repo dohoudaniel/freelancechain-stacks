@@ -123,12 +123,13 @@
                               (registry-contract <registry-trait>))
   (let ((job-data (unwrap! (contract-call? registry-contract get-job job-id) (err u404)))
         (dispute-id (get-next-dispute-id))
-        (current-time (unwrap-panic (get-block-info? time u0))))
+        (current-time u0))
 
     ;; Verify caller is client or freelancer
     (asserts! (or (is-eq tx-sender (get client job-data))
-              (is-some-and (get assigned-freelancer job-data)
-                          (compose is-eq tx-sender)))
+              (match (get assigned-freelancer job-data)
+                freelancer (is-eq tx-sender freelancer)
+                false))
               (err u403))
 
     ;; Create dispute record
@@ -161,7 +162,7 @@
 ;; Add evidence to a dispute
 (define-public (add-evidence (dispute-id uint) (description (string-utf8 500)))
   (let ((dispute-data (unwrap! (map-get? disputes { dispute-id: dispute-id }) (err u404)))
-        (current-time (unwrap-panic (get-block-info? time u0))))
+        (current-time u0))
 
     ;; Verify caller is client or freelancer
     (asserts! (or (is-eq tx-sender (get client dispute-data))
@@ -183,7 +184,7 @@
       (map-set disputes
         { dispute-id: dispute-id }
         (merge dispute-data {
-          evidence: (append evidence-list new-evidence)
+          evidence: (unwrap-panic (as-max-len? (append evidence-list new-evidence) u10))
         })
       )
       (ok true)
@@ -196,7 +197,7 @@
                                (vote-for (string-ascii 20))
                                (arbitrator-contract <arbitrator-trait>))
   (let ((dispute-data (unwrap! (map-get? disputes { dispute-id: dispute-id }) (err u404)))
-        (current-time (unwrap-panic (get-block-info? time u0))))
+        (current-time u0))
 
     ;; Verify caller is an arbitrator
     (asserts! (is-ok (contract-call? arbitrator-contract is-active-arbitrator tx-sender)) (err u403))
@@ -255,17 +256,19 @@
                                 (escrow-contract <escrow-trait>))
   (let ((dispute-data (unwrap! (map-get? disputes { dispute-id: dispute-id }) (err u404)))
         (counts (unwrap! (map-get? vote-counts { dispute-id: dispute-id }) (err u404)))
-        (current-time (unwrap-panic (get-block-info? time u0))))
+        (current-time u0))
 
     ;; Verify dispute is in voting status
     (asserts! (is-eq (get status dispute-data) STATUS-VOTING) (err u400))
 
     ;; Determine outcome based on votes
-    (let ((outcome
-            (cond
-              (> (get client-votes counts) (get freelancer-votes counts)) OUTCOME-CLIENT
-              (> (get freelancer-votes counts) (get client-votes counts)) OUTCOME-FREELANCER
-              true OUTCOME-SPLIT)))
+    (let ((client-votes (get client-votes counts))
+          (freelancer-votes (get freelancer-votes counts))
+          (outcome (if (> client-votes freelancer-votes)
+                      OUTCOME-CLIENT
+                      (if (> freelancer-votes client-votes)
+                          OUTCOME-FREELANCER
+                          OUTCOME-SPLIT))))
 
       ;; Update dispute status and outcome
       (map-set disputes

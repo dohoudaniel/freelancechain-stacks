@@ -82,7 +82,7 @@
                           (location-required (optional (string-ascii 50)))
                           (estimated-hours uint))
   (let ((job-id (get-next-job-id))
-        (current-time block-height))
+        (current-time u0))
     (map-set jobs
       { job-id: job-id }
       {

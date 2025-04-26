@@ -98,7 +98,7 @@
 
     ;; Get current reputation or initialize
     (let ((reputation (init-reputation user))
-          (current-time (unwrap-panic (get-block-info? time u0)))
+          (current-time u0)
           (rater-type (if (is-eq tx-sender (get client job-data))
                          "client"
                          "freelancer")))
@@ -133,7 +133,7 @@
             total-ratings: new-total,
             cumulative-score: new-cumulative,
             average-score: new-average,
-            ratings-received: (append ratings-list new-rating)
+            ratings-received: (unwrap-panic (as-max-len? (append ratings-list new-rating) u100))
           }
         )
         (ok true)

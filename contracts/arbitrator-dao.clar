@@ -59,7 +59,7 @@
 (define-public (register-arbitrator (name (string-utf8 50))
                                    (bio (string-utf8 200))
                                    (expertise (list 5 (string-ascii 30))))
-  (let ((current-time (unwrap-panic (get-block-info? time u0)))
+  (let ((current-time u0)
         (stake-amount (var-get min-stake-amount)))
 
     ;; Check if arbitrator already exists
@@ -141,7 +141,7 @@
     (let ((amount (get stake-amount arbitrator-data)))
       ;; Transfer stake back to arbitrator
       (as-contract
-        (stx-transfer? amount tx-sender tx-sender)
+        (try! (stx-transfer? amount tx-sender tx-sender))
       )
 
       ;; Update stake amount

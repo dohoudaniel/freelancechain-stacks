@@ -73,7 +73,7 @@
                                (delivery-time uint)
                                (description (string-utf8 500)))
   (let ((proposal-id (get-next-proposal-id))
-        (current-time (unwrap-panic (get-block-info? time u0))))
+        (current-time u0))
     (map-set proposals
       { proposal-id: proposal-id }
       {
@@ -110,7 +110,7 @@
     )
 
     ;; Update job status and assign freelancer
-    (contract-call? registry-contract update-job-status job-id "in-progress")
+    (try! (contract-call? registry-contract update-job-status job-id "in-progress"))
     (ok true)
   )
 )
