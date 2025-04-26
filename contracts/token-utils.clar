@@ -1,19 +1,24 @@
-# contracts/token-utils.clar
+;; contracts/token-utils.clar
 ;; FreelanceChain: Token Utilities Module
 ;; Handles token transfers and STX operations
+
+;; Define token trait for other contracts
+(define-trait token-trait
+  ((transfer-stx (uint principal principal) (response bool uint)))
+)
 
 ;; Define error codes
 (define-constant ERR-INSUFFICIENT-FUNDS u1001)
 (define-constant ERR-TRANSFER-FAILED u1002)
 
 ;; Transfer STX safely with error handling
-(define-public (transfer-stx (amount uint) (recipient principal))
+(define-public (transfer-stx (amount uint) (sender principal) (recipient principal))
   (let
     (
-      (balance (stx-get-balance tx-sender))
+      (balance (stx-get-balance sender))
     )
     (asserts! (>= balance amount) (err ERR-INSUFFICIENT-FUNDS))
-    (if (is-ok (stx-transfer? amount tx-sender recipient))
+    (if (is-ok (stx-transfer? amount sender recipient))
         (ok true)
         (err ERR-TRANSFER-FAILED)
     )
@@ -22,15 +27,19 @@
 
 ;; Safe math functions to prevent overflows
 (define-read-only (safe-add (a uint) (b uint))
-  (let ((sum (+ a b)))
-    (asserts! (>= sum a) (err u3001))
-    sum
+  (begin
+    (let ((sum (+ a b)))
+      (asserts! (>= sum a) (err u3001))
+      sum
+    )
   )
 )
 
 (define-read-only (safe-sub (a uint) (b uint))
-  (asserts! (>= a b) (err u3002))
-  (- a b)
+  (begin
+    (asserts! (>= a b) (err u3002))
+    (- a b)
+  )
 )
 
 ;; Calculate fee based on a percentage

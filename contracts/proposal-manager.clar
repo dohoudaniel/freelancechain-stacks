@@ -1,8 +1,23 @@
-# contracts/proposal-manager.clar
+;; contracts/proposal-manager.clar
 ;; FreelanceChain: Proposal Manager Module
 ;; Handles freelancer proposals to jobs
 
-(use-trait registry-trait .freelance-registry.registry-trait)
+;; Define registry trait
+(define-trait registry-trait
+  (
+    (get-job (uint) (response {
+      client: principal,
+      title: (string-utf8 100),
+      description: (string-utf8 500),
+      budget: uint,
+      status: (string-ascii 20),
+      created-at: uint,
+      deadline: uint,
+      assigned-freelancer: (optional principal)
+    } uint))
+    (update-job-status (uint (string-ascii 20)) (response bool uint))
+  )
+)
 
 ;; Proposal ID counter
 (define-data-var proposal-counter uint u0)
@@ -47,7 +62,7 @@
                               (map-get? job-proposals { job-id: job-id }))))
     (map-set job-proposals
       { job-id: job-id }
-      { proposal-ids: (append (get proposal-ids job-props) proposal-id) }
+      { proposal-ids: (unwrap-panic (as-max-len? (append (get proposal-ids job-props) proposal-id) u50)) }
     )
   )
 )

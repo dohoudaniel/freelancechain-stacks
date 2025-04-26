@@ -5,6 +5,9 @@ authors = []
 telemetry = true
 cache_dir = './.cache'
 requirements = []
+[project.feature-gates]
+enable-block-height = true
+enable-get-block-info = true
 [contracts.access-control]
 path = 'contracts/access-control.clar'
 clarity_version = 3

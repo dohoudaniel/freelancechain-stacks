@@ -1,4 +1,4 @@
-# contracts/arbitrator-dao.clar
+;; contracts/arbitrator-dao.clar
 ;; FreelanceChain: Arbitrator DAO Module
 ;; Manages arbitrator registration, staking, and governance
 
@@ -33,9 +33,16 @@
   { active: bool }
 )
 
-;; Initialize traits
+;; Define traits
 (define-trait access-trait
   ((is-admin (principal) (response bool uint)))
+)
+
+;; Define arbitrator trait for other contracts
+(define-trait arbitrator-trait
+  (
+    (is-active-arbitrator (principal) (response bool uint))
+  )
 )
 
 ;; Check if a principal is an active arbitrator

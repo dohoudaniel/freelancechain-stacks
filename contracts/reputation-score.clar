@@ -1,8 +1,23 @@
-# contracts/reputation-score.clar
+;; contracts/reputation-score.clar
 ;; FreelanceChain: Reputation Score Module
 ;; Handles ratings and reputation aggregation
 
-(use-trait registry-trait .freelance-registry.registry-trait)
+;; Define registry trait
+(define-trait registry-trait
+  (
+    (get-job (uint) (response {
+      client: principal,
+      title: (string-utf8 100),
+      description: (string-utf8 500),
+      budget: uint,
+      status: (string-ascii 20),
+      created-at: uint,
+      deadline: uint,
+      assigned-freelancer: (optional principal)
+    } uint))
+    (update-job-status (uint (string-ascii 20)) (response bool uint))
+  )
+)
 
 ;; Rating parameters
 (define-constant MIN-RATING u1)
@@ -68,15 +83,17 @@
 
     ;; Verify caller is related to the job (client or freelancer)
     (asserts! (or (is-eq tx-sender (get client job-data))
-              (is-some-and (get assigned-freelancer job-data)
-                          (compose is-eq tx-sender)))
+              (match (get assigned-freelancer job-data)
+                freelancer (is-eq tx-sender freelancer)
+                false))
               (err u403))
 
     ;; Verify user being rated is related to the job and not self-rating
     (asserts! (and (not (is-eq tx-sender user))
                   (or (is-eq user (get client job-data))
-                     (is-some-and (get assigned-freelancer job-data)
-                                 (compose is-eq user))))
+                     (match (get assigned-freelancer job-data)
+                        freelancer (is-eq user freelancer)
+                        false)))
               (err u403))
 
     ;; Get current reputation or initialize

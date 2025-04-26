@@ -1,4 +1,4 @@
-# contracts/access-control.clar
+;; contracts/access-control.clar
 ;; FreelanceChain: Access Control Module
 ;; Manages permissions and roles for the platform
 

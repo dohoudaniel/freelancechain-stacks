@@ -1,10 +1,47 @@
-# contracts/dispute-resolution.clar
+;; contracts/dispute-resolution.clar
 ;; FreelanceChain: Dispute Resolution Module
 ;; Manages dispute processes between clients and freelancers
 
-(use-trait registry-trait .freelance-registry.registry-trait)
-(use-trait escrow-trait .escrow-vault.escrow-trait)
-(use-trait arbitrator-trait .arbitrator-dao.arbitrator-trait)
+;; Define traits
+(define-trait registry-trait
+  (
+    (get-job (uint) (response {
+      client: principal,
+      title: (string-utf8 100),
+      description: (string-utf8 500),
+      budget: uint,
+      status: (string-ascii 20),
+      created-at: uint,
+      deadline: uint,
+      assigned-freelancer: (optional principal)
+    } uint))
+    (update-job-status (uint (string-ascii 20)) (response bool uint))
+  )
+)
+
+(define-trait escrow-trait
+  (
+    (get-escrow (uint) (response {
+      client: principal,
+      freelancer: (optional principal),
+      total-amount: uint,
+      milestone-count: uint,
+      released-count: uint,
+      milestones: (list 10 {
+        amount: uint,
+        description: (string-utf8 200),
+        released: bool
+      })
+    } uint))
+    (is-escrow-completed (uint) (response bool uint))
+  )
+)
+
+(define-trait arbitrator-trait
+  (
+    (is-active-arbitrator (principal) (response bool uint))
+  )
+)
 
 ;; Dispute status constants
 (define-constant STATUS-OPEN "open")
@@ -201,7 +238,7 @@
   )
 )
 
-# contracts/dispute-resolution.clar (continued)
+;; contracts/dispute-resolution.clar (continued)
 ;; Get dispute details
 (define-read-only (get-dispute (dispute-id uint))
   (map-get? disputes { dispute-id: dispute-id })

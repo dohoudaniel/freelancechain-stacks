@@ -1,9 +1,32 @@
-# contracts/freelance-registry.clar
+;; contracts/freelance-registry.clar
 ;; FreelanceChain: Freelance Registry Module
 ;; Manages job postings and metadata for the platform
 
-(use-trait access-trait .access-control.access-trait)
-(use-trait token-trait .token-utils.token-trait)
+;; Define traits
+(define-trait access-trait
+  ((is-admin (principal) (response bool uint)))
+)
+
+(define-trait token-trait
+  ((transfer-stx (uint principal principal) (response bool uint)))
+)
+
+;; Define registry trait for other contracts to use
+(define-trait registry-trait
+  (
+    (get-job (uint) (response {
+      client: principal,
+      title: (string-utf8 100),
+      description: (string-utf8 500),
+      budget: uint,
+      status: (string-ascii 20),
+      created-at: uint,
+      deadline: uint,
+      assigned-freelancer: (optional principal)
+    } uint))
+    (update-job-status (uint (string-ascii 20)) (response bool uint))
+  )
+)
 
 ;; Job status enumeration
 (define-constant STATUS-OPEN "open")
@@ -59,7 +82,7 @@
                           (location-required (optional (string-ascii 50)))
                           (estimated-hours uint))
   (let ((job-id (get-next-job-id))
-        (current-time (unwrap-panic (get-block-info? time u0))))
+        (current-time block-height))
     (map-set jobs
       { job-id: job-id }
       {
@@ -100,8 +123,9 @@
 (define-public (update-job-status (job-id uint) (new-status (string-ascii 20)))
   (let ((job-data (unwrap! (map-get? jobs { job-id: job-id }) (err u404))))
     (asserts! (or (is-eq tx-sender (get client job-data))
-              (is-some-and (get assigned-freelancer job-data)
-                          (compose is-eq tx-sender)))
+              (match (get assigned-freelancer job-data)
+                freelancer (is-eq tx-sender freelancer)
+                false))
               (err u403))
     (map-set jobs
       { job-id: job-id }
