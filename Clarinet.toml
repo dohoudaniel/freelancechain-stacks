@@ -1,0 +1,57 @@
+[project]
+name = 'freelance-stacks'
+description = ''
+authors = []
+telemetry = true
+cache_dir = './.cache'
+requirements = []
+[project.feature-gates]
+enable-block-height = true
+enable-get-block-info = true
+[contracts.access-control]
+path = 'contracts/access-control.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.arbitrator-dao]
+path = 'contracts/arbitrator-dao.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.dispute-resolution]
+path = 'contracts/dispute-resolution.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.escrow-vault]
+path = 'contracts/escrow-vault.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.freelance-registry]
+path = 'contracts/freelance-registry.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.proposal-manager]
+path = 'contracts/proposal-manager.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.reputation-score]
+path = 'contracts/reputation-score.clar'
+clarity_version = 3
+epoch = 3.1
+
+[contracts.token-utils]
+path = 'contracts/token-utils.clar'
+clarity_version = 3
+epoch = 3.1
+[repl.analysis]
+passes = ['check_checker']
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
